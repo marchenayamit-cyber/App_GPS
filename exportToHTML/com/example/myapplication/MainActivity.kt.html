@@ -1,0 +1,198 @@
+<html>
+<head>
+<title>MainActivity.kt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #7a7e85;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MainActivity.kt</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">example</span><span class="s2">.</span><span class="s1">myapplication</span>
+
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">Manifest</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">annotation</span><span class="s2">.</span><span class="s1">SuppressLint</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">Activity</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">PendingIntent</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">BroadcastReceiver</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">Context</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">Intent</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">IntentFilter</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">pm</span><span class="s2">.</span><span class="s1">PackageManager</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">os</span><span class="s2">.</span><span class="s1">Build</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">os</span><span class="s2">.</span><span class="s1">Bundle</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">telephony</span><span class="s2">.</span><span class="s1">SmsManager</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">Log</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">widget</span><span class="s2">.</span><span class="s1">Button</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">widget</span><span class="s2">.</span><span class="s1">EditText</span>
+<span class="s1">import android</span><span class="s2">.</span><span class="s1">widget</span><span class="s2">.</span><span class="s1">Toast</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">activity</span><span class="s2">.</span><span class="s1">result</span><span class="s2">.</span><span class="s1">contract</span><span class="s2">.</span><span class="s1">ActivityResultContracts</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">appcompat</span><span class="s2">.</span><span class="s1">app</span><span class="s2">.</span><span class="s1">AppCompatActivity</span>
+<span class="s1">import androidx</span><span class="s2">.</span><span class="s1">core</span><span class="s2">.</span><span class="s1">content</span><span class="s2">.</span><span class="s1">ContextCompat</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">google</span><span class="s2">.</span><span class="s1">android</span><span class="s2">.</span><span class="s1">gms</span><span class="s2">.</span><span class="s1">location</span><span class="s2">.</span><span class="s1">FusedLocationProviderClient</span>
+<span class="s1">import com</span><span class="s2">.</span><span class="s1">google</span><span class="s2">.</span><span class="s1">android</span><span class="s2">.</span><span class="s1">gms</span><span class="s2">.</span><span class="s1">location</span><span class="s2">.</span><span class="s1">LocationServices</span>
+
+<span class="s0">class </span><span class="s1">MainActivity : AppCompatActivity</span><span class="s2">() {</span>
+
+    <span class="s1">private lateinit </span><span class="s0">var </span><span class="s1">etTelefono: EditText</span>
+    <span class="s1">private lateinit </span><span class="s0">var </span><span class="s1">btnEnviar: Button</span>
+    <span class="s1">private lateinit </span><span class="s0">var </span><span class="s1">fusedLocationClient: FusedLocationProviderClient</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">SENT </span><span class="s2">= </span><span class="s3">&quot;SMS_SENT&quot;</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">DELIVERED </span><span class="s2">= </span><span class="s3">&quot;SMS_DELIVERED&quot;</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">sentReceiver </span><span class="s2">= </span><span class="s0">object </span><span class="s1">: BroadcastReceiver</span><span class="s2">() {</span>
+        <span class="s1">override </span><span class="s0">fun </span><span class="s1">onReceive</span><span class="s2">(</span><span class="s1">context: Context?</span><span class="s2">, </span><span class="s1">intent: Intent?</span><span class="s2">) {</span>
+            <span class="s0">when </span><span class="s2">(</span><span class="s1">resultCode</span><span class="s2">) {</span>
+                <span class="s1">Activity</span><span class="s2">.</span><span class="s1">RESULT_OK </span><span class="s2">-&gt; </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s1">baseContext</span><span class="s2">, </span><span class="s3">&quot;SMS enviado&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+                <span class="s1">SmsManager</span><span class="s2">.</span><span class="s1">RESULT_ERROR_GENERIC_FAILURE </span><span class="s2">-&gt; </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s1">baseContext</span><span class="s2">, </span><span class="s3">&quot;Error: Fallo genérico&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+                <span class="s1">SmsManager</span><span class="s2">.</span><span class="s1">RESULT_ERROR_NO_SERVICE </span><span class="s2">-&gt; </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s1">baseContext</span><span class="s2">, </span><span class="s3">&quot;Error: Sin servicio&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+                <span class="s1">SmsManager</span><span class="s2">.</span><span class="s1">RESULT_ERROR_NULL_PDU </span><span class="s2">-&gt; </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s1">baseContext</span><span class="s2">, </span><span class="s3">&quot;Error: PDU nulo&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+                <span class="s1">SmsManager</span><span class="s2">.</span><span class="s1">RESULT_ERROR_RADIO_OFF </span><span class="s2">-&gt; </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s1">baseContext</span><span class="s2">, </span><span class="s3">&quot;Error: Radio apagada&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+                <span class="s0">else </span><span class="s2">-&gt; </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s1">baseContext</span><span class="s2">, </span><span class="s3">&quot;Error al enviar: </span><span class="s0">$</span><span class="s1">resultCode</span><span class="s3">&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">deliveredReceiver </span><span class="s2">= </span><span class="s0">object </span><span class="s1">: BroadcastReceiver</span><span class="s2">() {</span>
+        <span class="s1">override </span><span class="s0">fun </span><span class="s1">onReceive</span><span class="s2">(</span><span class="s1">context: Context?</span><span class="s2">, </span><span class="s1">intent: Intent?</span><span class="s2">) {</span>
+            <span class="s0">when </span><span class="s2">(</span><span class="s1">resultCode</span><span class="s2">) {</span>
+                <span class="s1">Activity</span><span class="s2">.</span><span class="s1">RESULT_OK </span><span class="s2">-&gt; </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s1">baseContext</span><span class="s2">, </span><span class="s3">&quot;SMS entregado&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+                <span class="s1">Activity</span><span class="s2">.</span><span class="s1">RESULT_CANCELED </span><span class="s2">-&gt; </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s1">baseContext</span><span class="s2">, </span><span class="s3">&quot;SMS no entregado&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s4">// Lanzador para solicitar múltiples permisos en tiempo de ejecución</span>
+    <span class="s1">private </span><span class="s0">val </span><span class="s1">requestPermissionsLauncher </span><span class="s2">= </span><span class="s1">registerForActivityResult</span><span class="s2">(</span>
+        <span class="s1">ActivityResultContracts</span><span class="s2">.</span><span class="s1">RequestMultiplePermissions</span><span class="s2">()</span>
+    <span class="s2">) { </span><span class="s1">permissions </span><span class="s2">-&gt;</span>
+        <span class="s0">val </span><span class="s1">fineLocationGranted </span><span class="s2">= </span><span class="s1">permissions</span><span class="s2">[</span><span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">ACCESS_FINE_LOCATION</span><span class="s2">] </span><span class="s1">?: </span><span class="s0">false</span>
+        <span class="s0">val </span><span class="s1">sendSmsGranted </span><span class="s2">= </span><span class="s1">permissions</span><span class="s2">[</span><span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">SEND_SMS</span><span class="s2">] </span><span class="s1">?: </span><span class="s0">false</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">fineLocationGranted </span><span class="s2">&amp;&amp; </span><span class="s1">sendSmsGranted</span><span class="s2">) {</span>
+            <span class="s1">obtenerCoordenadasYEnviar</span><span class="s2">()</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s3">&quot;Se requieren permisos de GPS y SMS para funcionar&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_LONG</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">override </span><span class="s0">fun </span><span class="s1">onCreate</span><span class="s2">(</span><span class="s1">savedInstanceState: Bundle?</span><span class="s2">) {</span>
+        <span class="s0">super</span><span class="s2">.</span><span class="s1">onCreate</span><span class="s2">(</span><span class="s1">savedInstanceState</span><span class="s2">)</span>
+        <span class="s1">setContentView</span><span class="s2">(</span><span class="s1">R</span><span class="s2">.</span><span class="s1">layout</span><span class="s2">.</span><span class="s1">activity_main</span><span class="s2">)</span>
+
+        <span class="s4">// Registrar receptores para el estado del SMS con flags para Android 14+</span>
+        <span class="s0">val </span><span class="s1">flags </span><span class="s2">= </span><span class="s0">if </span><span class="s2">(</span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&gt;= </span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION_CODES</span><span class="s2">.</span><span class="s1">TIRAMISU</span><span class="s2">) {</span>
+            <span class="s1">ContextCompat</span><span class="s2">.</span><span class="s1">RECEIVER_EXPORTED</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s5">0</span>
+        <span class="s2">}</span>
+        <span class="s1">ContextCompat</span><span class="s2">.</span><span class="s1">registerReceiver</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">sentReceiver</span><span class="s2">, </span><span class="s1">IntentFilter</span><span class="s2">(</span><span class="s1">SENT</span><span class="s2">), </span><span class="s1">flags</span><span class="s2">)</span>
+        <span class="s1">ContextCompat</span><span class="s2">.</span><span class="s1">registerReceiver</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">deliveredReceiver</span><span class="s2">, </span><span class="s1">IntentFilter</span><span class="s2">(</span><span class="s1">DELIVERED</span><span class="s2">), </span><span class="s1">flags</span><span class="s2">)</span>
+
+        <span class="s1">etTelefono </span><span class="s2">= </span><span class="s1">findViewById</span><span class="s2">(</span><span class="s1">R</span><span class="s2">.</span><span class="s1">id</span><span class="s2">.</span><span class="s1">etTelefono</span><span class="s2">)</span>
+        <span class="s1">btnEnviar </span><span class="s2">= </span><span class="s1">findViewById</span><span class="s2">(</span><span class="s1">R</span><span class="s2">.</span><span class="s1">id</span><span class="s2">.</span><span class="s1">btnEnviar</span><span class="s2">)</span>
+        <span class="s1">fusedLocationClient </span><span class="s2">= </span><span class="s1">LocationServices</span><span class="s2">.</span><span class="s1">getFusedLocationProviderClient</span><span class="s2">(</span><span class="s0">this</span><span class="s2">)</span>
+
+        <span class="s1">btnEnviar</span><span class="s2">.</span><span class="s1">setOnClickListener </span><span class="s2">{</span>
+            <span class="s0">val </span><span class="s1">numero </span><span class="s2">= </span><span class="s1">etTelefono</span><span class="s2">.</span><span class="s1">text</span><span class="s2">.</span><span class="s1">toString</span><span class="s2">().</span><span class="s1">trim</span><span class="s2">()</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">numero</span><span class="s2">.</span><span class="s1">isEmpty</span><span class="s2">()) {</span>
+                <span class="s1">etTelefono</span><span class="s2">.</span><span class="s1">error </span><span class="s2">= </span><span class="s3">&quot;Ingresa un número válido&quot;</span>
+            <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                <span class="s1">verificarPermisosYProceder</span><span class="s2">()</span>
+            <span class="s2">}</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">override </span><span class="s0">fun </span><span class="s1">onDestroy</span><span class="s2">() {</span>
+        <span class="s0">super</span><span class="s2">.</span><span class="s1">onDestroy</span><span class="s2">()</span>
+        <span class="s0">try </span><span class="s2">{</span>
+            <span class="s1">unregisterReceiver</span><span class="s2">(</span><span class="s1">sentReceiver</span><span class="s2">)</span>
+            <span class="s1">unregisterReceiver</span><span class="s2">(</span><span class="s1">deliveredReceiver</span><span class="s2">)</span>
+        <span class="s2">} </span><span class="s1">catch </span><span class="s2">(</span><span class="s1">e: Exception</span><span class="s2">) {</span>
+            <span class="s4">// Ya desregistrados o nunca registrados</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">verificarPermisosYProceder</span><span class="s2">() {</span>
+        <span class="s0">val </span><span class="s1">permisoGps </span><span class="s2">= </span><span class="s1">ContextCompat</span><span class="s2">.</span><span class="s1">checkSelfPermission</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">ACCESS_FINE_LOCATION</span><span class="s2">)</span>
+        <span class="s0">val </span><span class="s1">permisoSms </span><span class="s2">= </span><span class="s1">ContextCompat</span><span class="s2">.</span><span class="s1">checkSelfPermission</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">SEND_SMS</span><span class="s2">)</span>
+
+        <span class="s0">if </span><span class="s2">(</span><span class="s1">permisoGps </span><span class="s2">== </span><span class="s1">PackageManager</span><span class="s2">.</span><span class="s1">PERMISSION_GRANTED </span><span class="s2">&amp;&amp; </span><span class="s1">permisoSms </span><span class="s2">== </span><span class="s1">PackageManager</span><span class="s2">.</span><span class="s1">PERMISSION_GRANTED</span><span class="s2">) {</span>
+            <span class="s1">obtenerCoordenadasYEnviar</span><span class="s2">()</span>
+        <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+            <span class="s4">// Solicitar permisos al usuario si no los tiene</span>
+            <span class="s1">requestPermissionsLauncher</span><span class="s2">.</span><span class="s1">launch</span><span class="s2">(</span>
+                <span class="s1">arrayOf</span><span class="s2">(</span>
+                    <span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">ACCESS_FINE_LOCATION</span><span class="s2">,</span>
+                    <span class="s1">Manifest</span><span class="s2">.</span><span class="s1">permission</span><span class="s2">.</span><span class="s1">SEND_SMS</span>
+                <span class="s2">)</span>
+            <span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@SuppressLint</span><span class="s2">(</span><span class="s3">&quot;MissingPermission&quot;</span><span class="s2">)</span>
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">obtenerCoordenadasYEnviar</span><span class="s2">() {</span>
+        <span class="s1">fusedLocationClient</span><span class="s2">.</span><span class="s1">lastLocation</span><span class="s2">.</span><span class="s1">addOnSuccessListener </span><span class="s2">{ </span><span class="s1">location </span><span class="s2">-&gt;</span>
+            <span class="s0">val </span><span class="s1">numero </span><span class="s2">= </span><span class="s1">etTelefono</span><span class="s2">.</span><span class="s1">text</span><span class="s2">.</span><span class="s1">toString</span><span class="s2">().</span><span class="s1">trim</span><span class="s2">()</span>
+            <span class="s0">if </span><span class="s2">(</span><span class="s1">location </span><span class="s2">!= </span><span class="s0">null</span><span class="s2">) {</span>
+                <span class="s0">val </span><span class="s1">latitud </span><span class="s2">= </span><span class="s1">location</span><span class="s2">.</span><span class="s1">latitude</span>
+                <span class="s0">val </span><span class="s1">longitud </span><span class="s2">= </span><span class="s1">location</span><span class="s2">.</span><span class="s1">longitude</span>
+                <span class="s4">// Send only numeric coordinates to avoid carrier link filtering</span>
+                <span class="s0">val </span><span class="s1">mensaje </span><span class="s2">= </span><span class="s3">&quot;Mi ubicacion: Lat </span><span class="s0">$</span><span class="s1">latitud</span><span class="s3">, Long </span><span class="s0">$</span><span class="s1">longitud</span><span class="s3">&quot;</span>
+
+                <span class="s1">enviarSMS</span><span class="s2">(</span><span class="s1">numero</span><span class="s2">, </span><span class="s1">mensaje</span><span class="s2">)</span>
+            <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                <span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s3">&quot;Buscando ubicación... enviando mensaje de prueba.&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+                <span class="s1">enviarSMS</span><span class="s2">(</span><span class="s1">numero</span><span class="s2">, </span><span class="s3">&quot;Prueba de envío de SMS desde mi app.&quot;</span><span class="s2">)</span>
+            <span class="s2">}</span>
+        <span class="s2">}.</span><span class="s1">addOnFailureListener </span><span class="s2">{</span>
+            <span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s3">&quot;Error de GPS: </span><span class="s0">${</span><span class="s1">it</span><span class="s2">.</span><span class="s1">message</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_SHORT</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+
+    <span class="s1">private </span><span class="s0">fun </span><span class="s1">enviarSMS</span><span class="s2">(</span><span class="s1">numero: String</span><span class="s2">, </span><span class="s1">mensaje: String</span><span class="s2">) {</span>
+        <span class="s4">// Limpieza profunda del número</span>
+        <span class="s0">val </span><span class="s1">numeroLimpio </span><span class="s2">= </span><span class="s1">numero</span><span class="s2">.</span><span class="s1">replace</span><span class="s2">(</span><span class="s3">&quot;[^0-9+]&quot;</span><span class="s2">.</span><span class="s1">toRegex</span><span class="s2">(), </span><span class="s3">&quot;&quot;</span><span class="s2">)</span>
+        
+        <span class="s0">val </span><span class="s1">sentPI </span><span class="s2">= </span><span class="s1">PendingIntent</span><span class="s2">.</span><span class="s1">getBroadcast</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s5">0</span><span class="s2">, </span><span class="s1">Intent</span><span class="s2">(</span><span class="s1">SENT</span><span class="s2">), </span><span class="s1">PendingIntent</span><span class="s2">.</span><span class="s1">FLAG_IMMUTABLE</span><span class="s2">)</span>
+        <span class="s0">val </span><span class="s1">deliveredPI </span><span class="s2">= </span><span class="s1">PendingIntent</span><span class="s2">.</span><span class="s1">getBroadcast</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s5">0</span><span class="s2">, </span><span class="s1">Intent</span><span class="s2">(</span><span class="s1">DELIVERED</span><span class="s2">), </span><span class="s1">PendingIntent</span><span class="s2">.</span><span class="s1">FLAG_IMMUTABLE</span><span class="s2">)</span>
+
+        <span class="s0">try </span><span class="s2">{</span>
+            <span class="s0">val </span><span class="s1">smsManager: SmsManager </span><span class="s2">= </span><span class="s0">if </span><span class="s2">(</span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION</span><span class="s2">.</span><span class="s1">SDK_INT </span><span class="s2">&gt;= </span><span class="s1">Build</span><span class="s2">.</span><span class="s1">VERSION_CODES</span><span class="s2">.</span><span class="s1">S</span><span class="s2">) {</span>
+                <span class="s0">this</span><span class="s2">.</span><span class="s1">getSystemService</span><span class="s2">(</span><span class="s1">SmsManager::</span><span class="s0">class</span><span class="s2">.</span><span class="s1">java</span><span class="s2">) </span><span class="s1">?: SmsManager</span><span class="s2">.</span><span class="s1">getDefault</span><span class="s2">()</span>
+            <span class="s2">} </span><span class="s0">else </span><span class="s2">{</span>
+                <span class="s1">@Suppress</span><span class="s2">(</span><span class="s3">&quot;DEPRECATION&quot;</span><span class="s2">)</span>
+                <span class="s1">SmsManager</span><span class="s2">.</span><span class="s1">getDefault</span><span class="s2">()</span>
+            <span class="s2">}</span>
+
+            <span class="s1">Log</span><span class="s2">.</span><span class="s1">d</span><span class="s2">(</span><span class="s3">&quot;SMS_DEBUG&quot;</span><span class="s2">, </span><span class="s3">&quot;Destino: </span><span class="s0">$</span><span class="s1">numeroLimpio </span><span class="s3">| Msg: </span><span class="s0">$</span><span class="s1">mensaje</span><span class="s3">&quot;</span><span class="s2">)</span>
+            
+            <span class="s0">val </span><span class="s1">partes </span><span class="s2">= </span><span class="s1">smsManager</span><span class="s2">.</span><span class="s1">divideMessage</span><span class="s2">(</span><span class="s1">mensaje</span><span class="s2">)</span>
+            <span class="s0">val </span><span class="s1">sentIntents </span><span class="s2">= </span><span class="s1">ArrayList</span><span class="s2">&lt;</span><span class="s1">PendingIntent</span><span class="s2">&gt;()</span>
+            <span class="s0">val </span><span class="s1">deliveryIntents </span><span class="s2">= </span><span class="s1">ArrayList</span><span class="s2">&lt;</span><span class="s1">PendingIntent</span><span class="s2">&gt;()</span>
+            
+            <span class="s0">for </span><span class="s2">(</span><span class="s1">p </span><span class="s0">in </span><span class="s1">partes</span><span class="s2">) {</span>
+                <span class="s1">sentIntents</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">sentPI</span><span class="s2">)</span>
+                <span class="s1">deliveryIntents</span><span class="s2">.</span><span class="s1">add</span><span class="s2">(</span><span class="s1">deliveredPI</span><span class="s2">)</span>
+            <span class="s2">}</span>
+            
+            <span class="s1">smsManager</span><span class="s2">.</span><span class="s1">sendMultipartTextMessage</span><span class="s2">(</span><span class="s1">numeroLimpio</span><span class="s2">, </span><span class="s0">null</span><span class="s2">, </span><span class="s1">partes</span><span class="s2">, </span><span class="s1">sentIntents</span><span class="s2">, </span><span class="s1">deliveryIntents</span><span class="s2">)</span>
+            
+        <span class="s2">} </span><span class="s1">catch </span><span class="s2">(</span><span class="s1">e: Exception</span><span class="s2">) {</span>
+            <span class="s1">Toast</span><span class="s2">.</span><span class="s1">makeText</span><span class="s2">(</span><span class="s0">this</span><span class="s2">, </span><span class="s3">&quot;Error crítico: </span><span class="s0">${</span><span class="s1">e</span><span class="s2">.</span><span class="s1">message</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s2">, </span><span class="s1">Toast</span><span class="s2">.</span><span class="s1">LENGTH_LONG</span><span class="s2">).</span><span class="s1">show</span><span class="s2">()</span>
+            <span class="s1">Log</span><span class="s2">.</span><span class="s1">e</span><span class="s2">(</span><span class="s3">&quot;SMS_DEBUG&quot;</span><span class="s2">, </span><span class="s3">&quot;Error: </span><span class="s0">${</span><span class="s1">e</span><span class="s2">.</span><span class="s1">message</span><span class="s0">}</span><span class="s3">&quot;</span><span class="s2">, </span><span class="s1">e</span><span class="s2">)</span>
+        <span class="s2">}</span>
+    <span class="s2">}</span>
+<span class="s2">}</span></pre>
+</body>
+</html>
